@@ -57,7 +57,8 @@ $(document).on("mobileinit", function() {
 
   // Determine AJAX URL prefix.
   if (document.location.protocol.toLowerCase().indexOf("file") != -1) {
-    ajaxURLPrefix = "http://127.0.0.1:80";
+    ajaxURLPrefix = "http://192.168.1.7:80";
+//    ajaxURLPrefix = "http://127.0.0.1:80";
   } else {
     ajaxURLPrefix = "http://www.etherient.com:80";
   }
@@ -138,6 +139,7 @@ function downloadServerData() {
   // of whether they succeeded or not.  Passed to this is the type of entity
   // completed and the response from the server, or null if the call failed.
   var completeLoad = function(inType, inResponse) {
+    console.log("**** Debugging inResponse for "+inType+":" +inResponse);
 
     // Record that this entity type was loaded and the server's response.
     fetching["loaded_" + inType] = true;
@@ -196,9 +198,17 @@ function downloadServerData() {
   .fail(function(inXHR, inStatus) { completeLoad("contact", null); });
 
   // Get all notes.
-  $.ajax({ url : ajaxURLPrefix + "/note" })
+  $.ajax({ url : ajaxURLPrefix + "/note",
+           dataType : "json" }) //bug? if none, get "parseerror" and fail
   .done(function(inResponse) { completeLoad("note", inResponse); })
-  .fail(function(inXHR, inStatus) { completeLoad("note", null); });
+  .fail(function(inXHR, inStatus, inError) {
+    completeLoad("note", null);
+    console.log("**** Debugging -- XHR: "+JSON.stringify(inXHR) +
+        ", status: "+inStatus  + ", error: "+JSON.stringify(inError));
+    // example of showing an alert dialog in native Android
+    MyAndroid.showAlertDialog("XHR: "+JSON.stringify(inXHR) +
+        ", status: "+inStatus + ", error: "+JSON.stringify(inError));
+  });
 
   // Get all tasks.
   $.ajax({ url : ajaxURLPrefix + "/task" })
@@ -266,6 +276,83 @@ function showListView(inType) {
 } // End showListView().
 
 
+// window.exports
+var exports = {
+  hybrid: {
+    currentHandleId: -1,
+    deferredMap: {}
+  }
+};
+
+function doFetchContacts(inType) {
+  fetchContacts()
+    .then(function(jsonArray) {
+      for (var i=0; i<jsonArray.length; i++) {
+        var data = getContactAsFormData(jsonArray[i]);
+        // send to server
+        doSave2(inType, data, false);
+      }
+    }, function(errMsg) {
+      $("#infoDialogHeader").html("Error");
+      $("#infoDialogContent").html(
+        "Snap! "+errMsg+" Stopping."
+      );
+      $.mobile.changePage($("#infoDialog"), { role : "dialog" });
+      return;
+    });
+}
+
+function fetchContacts() {
+    // get a jq Deferred Object
+    var deferred = $.Deferred();
+
+    var hybrid = window.exports.hybrid;
+
+    // get next handleId
+    hybrid.currentHandleId += 1;
+    var currentHandleId = hybrid.currentHandleId;
+
+    // store in a Map for Deferred Objects
+    hybrid.deferredMap[currentHandleId] = deferred;
+
+    // initiate native Android request to fetch contacts, and
+    // pass the deferred object handleId for that async
+    // process to call resolve() or reject()
+    MyAndroid.fetchContacts(currentHandleId);
+
+    // return the Deferred's Promise object so caller can set callbacks
+    return deferred.promise();
+}
+
+function getContactAsFormData(json) {
+
+  // json is in JSON notation (key is in quotes), not a javascript object literal, but perfectly ok
+
+  // contract is that the property names in json string passed in must all match the property key names here
+  var frmData = [
+    {name: 'category'},
+    {name: 'firstName'},
+    {name: 'lastName'},
+    {name: 'address1Type'},
+    {name: 'address1'},
+    {name: 'address2Type'},
+    {name: 'address2'},
+    {name: 'phone1Type'},
+    {name: 'phone1'},
+    {name: 'phone2Type'},
+    {name: 'phone2'},
+    {name: 'eMail'}
+  ];
+  // update with value from json
+  var frmObj = { };
+  for (var i = 0; i < frmData.length; i++) {
+    var fld = frmData[i];
+    frmObj[fld.name] = json[fld.name];
+  }
+  return JSON.stringify(frmObj);
+}
+
+
 /**
  * Save an entity.  This is used for adding a new entity as well as updating an
  * existing entity.
@@ -274,14 +361,21 @@ function showListView(inType) {
  */
 function doSave(inType) {
 
+  doSave2(inType, null, true);
+}
+
+function doSave2(inType, data, isFormData) {
+
+  if (isFormData) {
   // First things first: validate the form and abort if something's not right.
-  if (!validations["check_" + inType](inType)) {
-    $("#infoDialogHeader").html("Error");
-    $("#infoDialogContent").html(
-      "Please provide values for all required fields"
-    );
-    $.mobile.changePage($("#infoDialog"), { role : "dialog" });
-    return;
+    if (!validations["check_" + inType](inType)) {
+      $("#infoDialogHeader").html("Error");
+      $("#infoDialogContent").html(
+        "Please provide values for all required fields"
+      );
+      $.mobile.changePage($("#infoDialog"), { role : "dialog" });
+      return;
+    }
   }
 
   // Scrim screen for the duration of the call.
@@ -303,7 +397,9 @@ function doSave(inType) {
 
   // Get form data and then clear the form and reset updateID.
   var frmData = getFormAsJSON(inType);
-
+  if (!isFormData) {
+    frmData = data;
+  }
   updateID = null;
   document.getElementById(inType + "EntryForm").reset();
 

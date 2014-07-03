@@ -87,3 +87,10 @@
 .cssRequired {
   color : #ff0000;
 }
+
+/* responsive design so home page image is not cut off in portrait */
+@media screen and (orientation: portrait)  {
+  .cssHomeTitleHeader {
+    width: 90%;
+  }
+}
