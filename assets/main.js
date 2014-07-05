@@ -57,8 +57,11 @@ $(document).on("mobileinit", function() {
 
   // Determine AJAX URL prefix.
   if (document.location.protocol.toLowerCase().indexOf("file") != -1) {
-    ajaxURLPrefix = "http://192.168.1.7:80";
-//    ajaxURLPrefix = "http://127.0.0.1:80";
+    // use Chrome's Port forwarding to reach local dev machine over USB
+    // and not wifi network (which does not seem to recognize 127.0.0.1)
+    // https://developer.chrome.com/devtools/docs/remote-debugging#enable-reverse-port-forwarding
+    //  set Device port: 8080, Host: 127.0.0.1:80 (if server is listening on http://127.0.0.1:80)
+    ajaxURLPrefix = "http://127.0.0.1:8080";
   } else {
     ajaxURLPrefix = "http://www.etherient.com:80";
   }

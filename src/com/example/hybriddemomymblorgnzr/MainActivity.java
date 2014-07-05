@@ -281,7 +281,7 @@ public class MainActivity extends Activity {
                 // success, create the TTS instance
                 mTextToSpeech = new TextToSpeech(mContext, new MyTtsOnInitListener());
 
-                // do a test of tts by fetching first entry in notes
+                // do a test of tts by fetching first entry in web app's 'note'
                 //  but need to wait until jQuery has finished loading in webview
                 new Handler().postDelayed(new Runnable() {
                     @Override
@@ -301,7 +301,7 @@ public class MainActivity extends Activity {
 
     private void testTts() {
         // do test of tts
-        // by demoing how android can run javascript in webview: 1) fetch notes data, then 2) activate tts function in native app
+        // by demoing how android can run javascript in webview: 1) fetch web app 'note' data, then 2) activate native app tts function
         StringBuilder sb = new StringBuilder();
         sb.append("var jqXHR = $.ajax({ url: ajaxURLPrefix+'/note', async: false });"); // route is note
         sb.append("var resp = jqXHR.responseText;");
