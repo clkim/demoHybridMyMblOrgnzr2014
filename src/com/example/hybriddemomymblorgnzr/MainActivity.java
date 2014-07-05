@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -16,6 +17,7 @@ import android.content.pm.ApplicationInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.Menu;
@@ -33,12 +35,14 @@ import com.karura.framework.plugins.utils.ContactAccessorSdk5;
 
 public class MainActivity extends Activity {
 
-
-    private static final String FILE_SCHEME = "file";
-    private static final int MY_REQUEST_CODE = 88;
-    private static final String LOG_TAG = MainActivity.class.getSimpleName();
-    private static final String PERSONAL = "personal";
-    private static final  String[] KEYS = new String[] {"category",
+    private static final String JS_INTERFACE_OBJECT_NAME = "MyAndroid";
+    private static final String FILE_SCHEME              = "file";
+    private static final int MY_REQUEST_CODE             = 88;
+    private static final String LOG_TAG                  = MainActivity.class.getSimpleName();
+    private static final String PERSONAL                 = "personal";
+    private static final String FILE_URL_INDEX_HTML      = "file:///android_asset/index.html";
+    private static final String[] KEYS = new String[] {
+            "category",
             "firstName", "lastName",
             "address1Type", "address1", "address2Type", "address2",
             "phone1Type", "phone1", "phone2Type", "phone2",
@@ -72,7 +76,7 @@ public class MainActivity extends Activity {
             // remove deferred object to avoid memory leak
             sb.append("hybrid.deferredMap["+ handleIdForDeferredObject +"]= null; ");
             final String jsCode = String.format("javascript:%s", sb.toString());
-            Log.d("** debugging", "jsCode is: " + jsCode);
+            //Log.d("** debugging", "jsCode is: " + jsCode);
 
             // evaluateJavascript() must be run in UI thread
             runOnUiThread(new Runnable() {
@@ -81,12 +85,6 @@ public class MainActivity extends Activity {
                     // the callback object could be replaced with null since we don't need to do anything in this case;
                     // besides, the jQuery resolve() or reject() methods return a Deferred object and not a string
                     mWebView.evaluateJavascript(jsCode, null);
-                    /*
-                    mWebView.evaluateJavascript(jsCode, new ValueCallback<String>() {
-                        @Override
-                        public void onReceiveValue(String s) {}
-                    });
-                    */
                 }
             });
         }
@@ -193,6 +191,7 @@ public class MainActivity extends Activity {
         return  jo;
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -204,7 +203,7 @@ public class MainActivity extends Activity {
         // inject a javascript-java interface object, available to JavaScript at next page (re)load
         //  javascript interacts with java object on a private background thread of the webview, so need to watch for thread safety
         //  only java object's methods annotated with JavascriptInterface are accessible for targetSdkVersion to 17 (JELLY_BEAN_MR1) or higher
-        mWebView.addJavascriptInterface(new MyJsToJavaInterfaceObject(), "MyAndroid");
+        mWebView.addJavascriptInterface(new MyJsToJavaInterfaceObject(), JS_INTERFACE_OBJECT_NAME);
 
         // Enable Javascript
         WebSettings webSettings = mWebView.getSettings();
@@ -239,15 +238,6 @@ public class MainActivity extends Activity {
                 view.getContext().startActivity(intent);
                 return true; // prevents URL from being loaded into the WebView
             }
-
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                super.onPageFinished(view, url);
-                // do a test of tts by fetching first entry in notes
-                if (url.endsWith("index.html")) {
-                    testTts();
-                }
-            }
         });
 
         // Configure WebView for debugging
@@ -272,7 +262,7 @@ public class MainActivity extends Activity {
 
 
         // webview methods must be called on UI thread, but need to be nonblocking
-        mWebView.loadUrl("file:///android_asset/index.html");
+        mWebView.loadUrl(FILE_URL_INDEX_HTML);
 
 
         // Text to Speech
@@ -281,9 +271,34 @@ public class MainActivity extends Activity {
         Intent checkTtsIntent = new Intent();
         checkTtsIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
         startActivityForResult(checkTtsIntent, MY_REQUEST_CODE);
-
-        // in webviewclient we do a test of tts whenever vebview finish loading the index.html page in onPageFinished()
+        // we do a test of tts and demonstrate accessing data from web app after checking there is tts engine
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        if (requestCode == MY_REQUEST_CODE) {
+            if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
+                // success, create the TTS instance
+                mTextToSpeech = new TextToSpeech(mContext, new MyTtsOnInitListener());
+
+                // do a test of tts by fetching first entry in notes
+                //  but need to wait until jQuery has finished loading in webview
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        testTts();
+                    }
+                }, 200);
+
+            } else {
+                // missing tts engine, go to store to get one to install
+                Intent installIntent = new Intent();
+                installIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                startActivity(installIntent);
+            }
+        }
+    }
+
     private void testTts() {
         // do test of tts
         // by demoing how android can run javascript in webview: 1) fetch notes data, then 2) activate tts function in native app
@@ -302,21 +317,6 @@ public class MainActivity extends Activity {
                 mTextToSpeech.speak(s, TextToSpeech.QUEUE_ADD, null);
             }
         });
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        if (requestCode == MY_REQUEST_CODE) {
-            if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
-                // success, create the TTS instance
-                mTextToSpeech = new TextToSpeech(mContext, new MyTtsOnInitListener());
-            } else {
-                // missing tts engine, go to store to get one to install
-                Intent installIntent = new Intent();
-                installIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
-                startActivity(installIntent);
-            }
-        }
     }
 
     @Override
