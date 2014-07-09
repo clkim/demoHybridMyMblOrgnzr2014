@@ -51,42 +51,25 @@ public class MainActivity extends Activity {
     private Context mContext;
     private WebView mWebView;
     private TextToSpeech mTextToSpeech;
+    private MyWorkerThread workerThread;
 
     public class MyJsToJavaInterfaceObject {
 
         /** Fetch contacts from native address book */
         @JavascriptInterface
-        public void fetchContacts(String handleIdForDeferredObject) {
+        public void fetchContacts(final String handleIdForDeferredObject) {
             Log.d("** debugging", "handleIdForDeferredObject is: " + handleIdForDeferredObject);
 
-            JSONArray entriesInContacts = getEntriesInContacts();
-            //JSONArray entriesInContacts = null; //test error path
-
-            // form javascript
-            StringBuilder sb = new StringBuilder();
-            sb.append("var hybrid = window.exports.hybrid; ");
-            // check for successful call above
-            if (entriesInContacts != null) {
-                // get a string in JSON notation (key in quotes)
-                String json = entriesInContacts.toString();
-                sb.append("hybrid.deferredMap["+ handleIdForDeferredObject +"].resolve("+ json +"); ");
-            } else {
-                sb.append("hybrid.deferredMap["+ handleIdForDeferredObject +"].reject('Android code threw an exception, null returned.'); ");
+            Handler handler = workerThread.getHandlerToMsgQueue();
+            // handler is set to null in onDestroy() to try to avoid thread leak
+            if (handler != null) {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        getContactsAndResolveJSDeferredObj(handleIdForDeferredObject);
+                    }
+                });
             }
-            // remove deferred object to avoid memory leak
-            sb.append("hybrid.deferredMap["+ handleIdForDeferredObject +"]= null; ");
-            final String jsCode = String.format("javascript:%s", sb.toString());
-            //Log.d("** debugging", "jsCode is: " + jsCode);
-
-            // evaluateJavascript() must be run in UI thread
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    // the callback object could be replaced with null since we don't need to do anything in this case;
-                    // besides, the jQuery resolve() or reject() methods return a Deferred object and not a string
-                    mWebView.evaluateJavascript(jsCode, null);
-                }
-            });
         }
 
         /** Show a alert dialog from the web page */
@@ -100,15 +83,35 @@ public class MainActivity extends Activity {
         }
     }
 
-    public class MyTtsOnInitListener implements TextToSpeech.OnInitListener {
-        @Override
-        public void onInit(int i) {
-            if (i == TextToSpeech.SUCCESS) {
-                mTextToSpeech.setLanguage(Locale.US);
-            } else {
-                Log.e(MyTtsOnInitListener.class.getSimpleName(), "Snap! Text-to-speech onInit returned FAIL");
-            }
+    private void getContactsAndResolveJSDeferredObj(String handleIdForDeferredObject) {
+        JSONArray entriesInContacts = getEntriesInContacts();
+        //JSONArray entriesInContacts = null; //test error path
+
+        // form javascript
+        StringBuilder sb = new StringBuilder();
+        sb.append("var hybrid = window.exports.hybrid; ");
+        // check for successful call above
+        if (entriesInContacts != null) {
+            // get a string in JSON notation (key in quotes)
+            String json = entriesInContacts.toString();
+            sb.append("hybrid.deferredMap["+ handleIdForDeferredObject +"].resolve("+ json +"); ");
+        } else {
+            sb.append("hybrid.deferredMap["+ handleIdForDeferredObject +"].reject('Android code threw an exception, null returned.'); ");
         }
+        // remove deferred object to avoid memory leak
+        sb.append("hybrid.deferredMap["+ handleIdForDeferredObject +"]= null; ");
+        final String jsCode = String.format("javascript:%s", sb.toString());
+        //Log.d("** debugging", "jsCode is: " + jsCode);
+
+        // evaluateJavascript() must be run in UI thread
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // the callback object could be replaced with null since we don't need to do anything in this case;
+                // besides, the jQuery resolve() or reject() methods return a Deferred object and not a string
+                mWebView.evaluateJavascript(jsCode, null);
+            }
+        });
     }
 
     private JSONArray getEntriesInContacts() {
@@ -191,6 +194,7 @@ public class MainActivity extends Activity {
         return  jo;
     }
 
+
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -272,6 +276,11 @@ public class MainActivity extends Activity {
         checkTtsIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
         startActivityForResult(checkTtsIntent, MY_REQUEST_CODE);
         // we do a test of tts and demonstrate accessing data from web app after checking there is tts engine
+
+
+        // start WorkerThread
+        workerThread = new MyWorkerThread();
+        workerThread.start(); // some cleanup is done in onDestroy() to try to avoid leak
     }
 
     @Override
@@ -279,7 +288,16 @@ public class MainActivity extends Activity {
         if (requestCode == MY_REQUEST_CODE) {
             if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
                 // success, create the TTS instance
-                mTextToSpeech = new TextToSpeech(mContext, new MyTtsOnInitListener());
+                mTextToSpeech = new TextToSpeech(mContext, new TextToSpeech.OnInitListener() {
+                    @Override
+                    public void onInit(int i) {
+                        if (i == TextToSpeech.SUCCESS) {
+                            mTextToSpeech.setLanguage(Locale.US);
+                        } else {
+                            Log.e(TextToSpeech.OnInitListener.class.getSimpleName(), "Snap! Text-to-speech onInit returned FAIL");
+                        }
+                    }
+                });
 
                 // do a test of tts by fetching first entry in web app's 'note'
                 //  but need to wait until jQuery has finished loading in webview
@@ -359,6 +377,9 @@ public class MainActivity extends Activity {
             mTextToSpeech.stop();
             // release resources
             mTextToSpeech.shutdown();
+        }
+        if (workerThread != null) {
+            workerThread.cleanup();
         }
     }
 }
