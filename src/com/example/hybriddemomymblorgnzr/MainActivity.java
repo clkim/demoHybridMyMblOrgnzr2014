@@ -1,5 +1,7 @@
 package com.example.hybriddemomymblorgnzr;
 
+import static android.content.DialogInterface.BUTTON_NEUTRAL;
+
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -12,6 +14,8 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.net.Uri;
@@ -51,6 +55,7 @@ public class MainActivity extends Activity {
     private Context mContext;
     private WebView mWebView;
     private TextToSpeech mTextToSpeech;
+    private AlertDialog alertDialog; // an alert dialog called by JavaScript from WebView
     private MyWorkerThread workerThread;
 
     public class MyJsToJavaInterfaceObject {
@@ -72,14 +77,22 @@ public class MainActivity extends Activity {
             }
         }
 
-        /** Show a alert dialog from the web page */
+        /** Show an alert dialog called from the WebView */
         @JavascriptInterface
         public void showAlertDialog(String toast) {
-            new AlertDialog.Builder(mContext)
-                    .setTitle("Alert")
-                    .setMessage(toast)
-                    .setNeutralButton("OK", null)
-                    .show();
+            alertDialog = new AlertDialog.Builder(mContext).create();
+            alertDialog.setTitle("Alert");
+            alertDialog.setMessage(toast);
+            alertDialog.setButton(BUTTON_NEUTRAL, "OK", new OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    // need to dismiss and not just close dialog, to avoid
+                    //  crashing Android with error log entry:
+                    //  E/WindowManager(<pid>): android.view.WindowLeaked: Activity
+                    // also dismiss dialog before exiting Activity e.g. in onPause()
+                    dialog.dismiss();
+                }
+            });
+            alertDialog.show();
         }
     }
 
@@ -368,6 +381,17 @@ public class MainActivity extends Activity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        // need to dismiss before exiting Activity in order to avoid
+        //  crashing Android with error log entry:
+        //  E/WindowManager(<pid>): android.view.WindowLeaked: Activity
+        if (alertDialog != null) {
+            alertDialog.dismiss();
+        }
     }
 
     @Override
