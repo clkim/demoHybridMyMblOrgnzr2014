@@ -44,7 +44,7 @@ public class MainActivity extends Activity {
     private static final int MY_REQUEST_CODE             = 88;
     private static final String LOG_TAG                  = MainActivity.class.getSimpleName();
     private static final String PERSONAL                 = "personal";
-    private static final String FILE_URL_INDEX_HTML      = "file:///android_asset/index.html";
+    private static final String FILE_URL_INDEX_HTML      = "file:///android_asset/www/index.html";
     private static final String[] KEYS = new String[] {
             "category",
             "firstName", "lastName",
