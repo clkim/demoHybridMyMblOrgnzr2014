@@ -276,7 +276,7 @@ public class MainActivity extends Activity {
         });
 
 
-        // webview methods must be called on UI thread, but need to be nonblocking
+        // webview methods must be called on UI thread; and non-blocking
         mWebView.loadUrl(FILE_URL_INDEX_HTML);
 
 
@@ -350,8 +350,8 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        // prevent the back button from incorrectly exiting the application
-        //  if there are pages in the WebView history to navigate to previous page
+        // prevent the back button from incorrectly exiting the app
+        //  if there are pages in the WebView history to navigate back
         if(mWebView.canGoBack()) {
             mWebView.goBack();
         } else {
