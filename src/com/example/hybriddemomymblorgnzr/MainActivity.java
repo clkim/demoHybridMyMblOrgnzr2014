@@ -40,7 +40,6 @@ import com.karura.framework.plugins.utils.ContactAccessorSdk5;
 public class MainActivity extends Activity {
 
     private static final String JS_INTERFACE_OBJECT_NAME = "MyAndroid";
-    private static final String FILE_SCHEME              = "file";
     private static final int MY_REQUEST_CODE             = 88;
     private static final String LOG_TAG                  = MainActivity.class.getSimpleName();
     private static final String PERSONAL                 = "personal";
@@ -240,20 +239,19 @@ public class MainActivity extends Activity {
         //webSettings.setDisplayZoomControls(true); // default is false
         //webSettings.setBuiltInZoomControls(true); // default true?
 
-        // Stop local file links and redirects from opening in browser instead of WebView
+        // Open non-local webpages in browser instead of WebView
+        // default implementation in a myWebViewClient = new WebViewClient() always returns false
         mWebView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                String urlScheme = Uri.parse(url).getScheme();
-                if(urlScheme!=null && urlScheme.equalsIgnoreCase(FILE_SCHEME)) {
-                    // tells the platform not to override the URL, but to load it in the WebView
+                if(Uri.parse(url).getHost().length() == 0) {
+                    // don't override URL loading, load it in the WebView
                     return false;
                 }
-
-                // open a browser for non-local web pages
+                // override the URL loading, request system to open the URL
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 view.getContext().startActivity(intent);
-                return true; // prevents URL from being loaded into the WebView
+                return true;
             }
         });
 
