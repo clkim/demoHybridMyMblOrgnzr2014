@@ -221,6 +221,16 @@ public class MainActivity extends Activity {
         //  only java object's methods annotated with JavascriptInterface are accessible for targetSdkVersion to 17 (JELLY_BEAN_MR1) or higher
         mWebView.addJavascriptInterface(new MyJsToJavaInterfaceObject(), JS_INTERFACE_OBJECT_NAME);
 
+        // set webview background to avoid 'flash' when app loads up with a WebView
+        // set to be same as WebView home page background color (in demo app, it is just an image with white? background)
+        //  http://developer.android.com/reference/android/R.color.html
+        mWebView.setBackgroundColor(
+                getResources().getColor(android.R.color.background_light)); // this is #ffffff
+        //  OR use color hex value, but good practice to define color value in own values xml file and use above syntax
+        //  https://github.com/android/platform_frameworks_base/blob/master/core/res/res/values/colors.xml
+        //  http://developer.android.com/guide/topics/resources/more-resources.html#Color
+        //mWebView.setBackgroundColor(Color.parseColor("#f3f3f3")); // this is "background_holo_light"; no android.R.color.background_holo_light
+
         // Enable Javascript
         WebSettings webSettings = mWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
