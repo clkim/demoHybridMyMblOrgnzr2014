@@ -342,16 +342,17 @@ public class MainActivity extends Activity {
         // do test of tts
         // by demoing how android can run javascript in webview: 1) fetch web app 'note' data, then 2) activate native app tts function
         StringBuilder sb = new StringBuilder();
-        sb.append("var jqXHR = $.ajax({ url: ajaxURLPrefix+'/note', async: false });"); // route is note
+        // ajaxURLPrefix is http://127.0.0.1:8080, path is /note
+        sb.append("var jqXHR = $.ajax({ url: ajaxURLPrefix+'/note', async: false });");
         sb.append("var resp = jqXHR.responseText;");
-        sb.append("JSON.parse(resp)[0].text;"); // javascript object after parsing response is an array of size 1; field name is text
+        // javascript object after parsing response is an array of size 1; property name is 'text'
+        sb.append("JSON.parse(resp)[0].text;");
         String jsStatements = sb.toString();
         String js = String.format("javascript:%s", jsStatements);
 
         // onReceiveValue is always {"readyState":1} in logcat if ajax call is async
         mWebView.evaluateJavascript(js, new ValueCallback<String>() {
-            @Override
-            public void onReceiveValue(String s) {
+            @Override public void onReceiveValue(String s) {
                 //Log.i("*** Webview", s);
                 mTextToSpeech.speak(s, TextToSpeech.QUEUE_ADD, null);
             }
