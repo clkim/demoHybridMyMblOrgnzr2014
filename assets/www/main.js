@@ -279,6 +279,36 @@ function showListView(inType) {
 } // End showListView().
 
 
+/* functions for Event Pooling */
+// register space-separated event names to a callback
+function subscribeEvents(eventNames, callback) {
+  $(document).on(eventNames, callback);
+}
+
+// trigger an event
+function triggerEvent(eventName, data, delay) {
+  setTimeout(function() {
+    $(document).trigger(eventName, data);
+  }, delay || 0);
+}
+
+// general function to query native "People" address book
+function queryNativeContacts(evt, data) {
+  switch(evt.type) {
+    case 'GET_NATIVE_CONTACTS':
+      doFetchContacts(data.inType);
+      break;
+  }
+}
+
+// subscribe to event to get all native Contacts
+//  call with triggerEvent('GET_NATIVE_CONTACTS', data, 0);
+//  data is expected to have value for property inType
+subscribeEvents('GET_NATIVE_CONTACTS', function(evt, data) {
+  queryNativeContacts.apply(null, [evt, data]);
+});
+
+
 // window.exports
 var exports = {
   hybrid: {
