@@ -25,7 +25,7 @@ public class MyWorkerThread extends Thread {
             // not processing messages passed into handler, just runnables
         }
       };
-      // handles msgs/runnables receive to msgqueue, this will start a loop that listens
+      // handles msgs/runnables received on msg queue, this will start a loop that listens
       Looper.loop();
     }
 
@@ -36,5 +36,6 @@ public class MyWorkerThread extends Thread {
     // clk: trying to make sure thread does not leak
     public void cleanup() {
         workerHandler = null;
+        //Looper.myLooper().quitSafely(); // crashes app; seems not needed despite what JavaDocs for Looper.loop() says; see http://stackoverflow.com/questions/17617731/where-quit-the-looper
     }
 }
