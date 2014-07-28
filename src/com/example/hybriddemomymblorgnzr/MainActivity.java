@@ -101,7 +101,7 @@ public class MainActivity extends Activity {
 
         // form javascript
         StringBuilder sb = new StringBuilder();
-        sb.append("var hybrid = window.exports.hybrid; ");
+        sb.append("var hybrid = window.hybrid; ");
         // check for successful call above
         if (entriesInContacts != null) {
             // get a string in JSON notation (key in quotes)

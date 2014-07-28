@@ -279,43 +279,16 @@ function showListView(inType) {
 } // End showListView().
 
 
-/* functions for Event Pooling */
-// register space-separated event names to a callback
-function subscribeEvents(eventNames, callback) {
-  $(document).on(eventNames, callback);
-}
+/**
+ * Initialize (or Extend if main.js is after hybridMain.js) hybrid name space
+ */
+var hybrid = hybrid || {};
 
-// trigger an event
-function triggerEvent(eventName, data, delay) {
-  setTimeout(function() {
-    $(document).trigger(eventName, data);
-  }, delay || 0);
-}
+;(function (ns) {
+  ns.currentHandleId = -1;
+  ns.deferredMap     = {};
+})(hybrid); // 'hybrid' namespace
 
-// general function to query native "People" address book
-function queryNativeContacts(evt, data) {
-  switch(evt.type) {
-    case 'GET_NATIVE_CONTACTS':
-      doFetchContacts(data.inType);
-      break;
-  }
-}
-
-// subscribe to event to get all native Contacts
-//  call with triggerEvent('GET_NATIVE_CONTACTS', data, 0);
-//  data is expected to have value for property inType
-subscribeEvents('GET_NATIVE_CONTACTS', function(evt, data) {
-  queryNativeContacts.apply(null, [evt, data]);
-});
-
-
-// window.exports
-var exports = {
-  hybrid: {
-    currentHandleId: -1,
-    deferredMap: {}
-  }
-};
 
 function doFetchContacts(inType) {
   fetchContacts()
@@ -339,7 +312,7 @@ function fetchContacts() {
     // get a jq Deferred Object
     var deferred = $.Deferred();
 
-    var hybrid = window.exports.hybrid;
+    var hybrid = window.hybrid;
 
     // get next handleId
     hybrid.currentHandleId += 1;
