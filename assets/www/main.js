@@ -330,12 +330,12 @@ function fetchContacts() {
     return deferred.promise();
 }
 
-function getContactAsFormData(json) {
+function getContactAsFormData(jsObjLiteral) {
 
-  // json is in JSON notation (key is in quotes), not a javascript object literal, but perfectly ok
+  // jsObjLiteral is a javascript object literal i.e. pairs of property names (not in quotes) and associated values
 
-  // contract is that the property names in json string passed in must all match the property key names here
-  var frmData = [
+  // contract is that the property names in jsObjLiteral passed in must all match the form field names here
+  var formFields = [
     {name: 'category'},
     {name: 'firstName'},
     {name: 'lastName'},
@@ -349,13 +349,13 @@ function getContactAsFormData(json) {
     {name: 'phone2'},
     {name: 'eMail'}
   ];
-  // update with value from json
+  // update with value from jsObjLiteral
   var frmObj = { };
-  for (var i = 0; i < frmData.length; i++) {
-    var fld = frmData[i];
-    frmObj[fld.name] = json[fld.name];
+  for (var i = 0; i < formFields.length; i++) {
+    var prop = formFields[i];
+    frmObj[prop.name] = jsObjLiteral[prop.name];
   }
-  return JSON.stringify(frmObj);
+  return JSON.stringify(frmObj); // string with property names in double quotes
 }
 
 

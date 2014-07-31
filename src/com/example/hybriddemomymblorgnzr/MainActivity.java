@@ -105,6 +105,8 @@ public class MainActivity extends Activity {
         // check for successful call above
         if (entriesInContacts != null) {
             // get a string in JSON notation (key in quotes)
+            // works here as a javascript object literal because it allows string or numeric literal for name of property
+            // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Values,_variables,_and_literals#Object_literals
             String json = entriesInContacts.toString();
             sb.append("hybrid.deferredMap["+ handleIdForDeferredObject +"].resolve("+ json +"); ");
         } else {
