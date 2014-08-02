@@ -112,8 +112,8 @@ public class MainActivity extends Activity {
         } else {
             sb.append("hybrid.deferredMap["+ handleIdForDeferredObject +"].reject('Android code threw an exception, null returned.'); ");
         }
-        // remove deferred object to avoid memory leak
-        sb.append("hybrid.deferredMap["+ handleIdForDeferredObject +"]= null; ");
+        // remove reference to deferred object to avoid memory leak
+        sb.append("delete hybrid.deferredMap["+ handleIdForDeferredObject +"]; ");
         final String jsCode = String.format("javascript:%s", sb.toString());
         //Log.d("** debugging", "jsCode is: " + jsCode);
 
