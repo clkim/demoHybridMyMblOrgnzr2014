@@ -27,14 +27,18 @@ var hybrid = hybrid || {};
   ns.queryNativeContacts = function(evt, data) {
 	switch(evt.type) {
 	  case 'GET_NATIVE_CONTACTS':
+	    // data is expected to have a property 'inType'
 	    mainjs.doFetchContacts(data.inType);
 	    break;
+	  default:
+	    // default handler if any
 	}
   };
 
   // subscribe to event to get all native Contacts;
   //  call with triggerEvent('GET_NATIVE_CONTACTS', data, 0);
   //  data is expected to have a property 'inType'
+  // can subscribe to more than one event, use space-separated event names
   ns.eventUtils.subscribeEvents('GET_NATIVE_CONTACTS', function(evt, data) {
     ns.queryNativeContacts.apply(null, [evt, data]);
   });
