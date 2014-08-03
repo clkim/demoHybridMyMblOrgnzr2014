@@ -131,11 +131,10 @@ public class MainActivity extends Activity {
     private JSONArray getEntriesInContacts() {
         ContactAccessor contactAccessor = new ContactAccessorSdk5();
         contactAccessor.setContext(mContext);
-        JSONArray jsonArray = new JSONArray();
+        JSONArray jsonArray = new JSONArray(); // array of values to be returned
         try {
-            Map<String, String> hashmap = null;
-
-            JSONArray result = contactAccessor.search(new JSONArray(new String[] {"*"}), null, 0, 10);
+            JSONArray result = contactAccessor.search(
+                    new JSONArray(new String[] {"*"}), null, 0, 10);
             for (int i=0; i<result.length(); i++) {
                 JSONObject jsonObject = result.getJSONObject(i);
 
@@ -151,13 +150,13 @@ public class MainActivity extends Activity {
                 }
 
                 JSONObject jo;
-                // address
+                // address, for demo just get first one
                 jo = getFirstJSONObjectIn(jsonObject, ContactAccessor.FORMATTED_ADDRESS);
                 String addressType   = (jo == null ? "" : jo.optString("type"))
                         .replace("custom", "other");
                 String streetAddress = (jo == null ? "" : jo.optString("formatted"));
 
-                // phone
+                // phone, for demo just get first one
                 jo = getFirstJSONObjectIn(jsonObject, ContactAccessor.PHONE_NUMBER);
                 String phoneType   = (jo == null ? "" : jo.optString("type"))
                         .replace("mobile", "cell")
@@ -169,18 +168,20 @@ public class MainActivity extends Activity {
                     phoneType = "other";
                 String phoneNumber = (jo == null ? "" : jo.optString("value"));
 
-                // email
+                // email, for demo just get first one
+                //   ref ContactAccessorSdk5.emailQuery() for “value” key to use
                 jo = getFirstJSONObjectIn(jsonObject, ContactAccessor.EMAIL);
                 String email = (jo == null ? "" : jo.optString("value"));
 
                 // build map for JSONObject
-                // the properties and values are needed by the web app
+                // the values (for demo, just set category to string PERSONAL)
+                //   and properties (in string array KEYS) needed by the web app
                 String[] values = new String[] {PERSONAL,
                         firstName, lastName,
                         addressType, streetAddress, "", "",
                         phoneType, phoneNumber, "", "",
                         email};
-                hashmap = new HashMap<String, String>();
+                Map<String, String> hashmap = new HashMap<String, String>();
                 for (int j = 0; j<KEYS.length; j++) {
                         hashmap.put(KEYS[j], values[j]);
                 }
