@@ -312,7 +312,9 @@ public class MainActivity extends Activity {
         if (requestCode == MY_REQUEST_CODE) {
             if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
                 // success, create the TTS instance
-                mTextToSpeech = new TextToSpeech(mContext, new TextToSpeech.OnInitListener() {
+                //  seems need to use getApplicationContext() instead of mContext to avoid Error log: ...MainActivity has leaked ServiceConnection android.speech.tts.TextToSpeech$Connection@41e93920 that was originally bound here
+                //  http://stackoverflow.com/questions/19653223/texttospeech-and-memory-leak
+                mTextToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
                     @Override
                     public void onInit(int i) {
                         if (i == TextToSpeech.SUCCESS) {
