@@ -246,11 +246,15 @@ public class MainActivity extends Activity {
         // allow window.localStorage in webview
         webSettings.setDomStorageEnabled(true);
 
-        // viewport
+        // viewport set in index.html meta tag
 
-        // zoom
-        //webSettings.setDisplayZoomControls(true); // default is false
-        //webSettings.setBuiltInZoomControls(true); // default true?
+        // zoom seen in Chromium WebView Samples https://github.com/GoogleChrome/chromium-webview-samples
+        // WebRTC sample app
+        if(Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB) {
+            // Hide the zoom controls for HONEYCOMB+
+            webSettings.setDisplayZoomControls(false); // default is true
+        }
+        webSettings.setBuiltInZoomControls(true); // only see pinch to zoom effect for dialog box; default false
 
         // Open non-local webpages in browser instead of WebView
         // default implementation in a myWebViewClient = new WebViewClient() always returns false
