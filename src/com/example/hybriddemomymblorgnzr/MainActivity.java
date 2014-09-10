@@ -23,9 +23,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
+import android.text.TextUtils.TruncateAt;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
@@ -33,6 +35,8 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.karura.framework.plugins.utils.ContactAccessor;
 import com.karura.framework.plugins.utils.ContactAccessorSdk5;
@@ -53,6 +57,9 @@ public class MainActivity extends Activity {
 
     private Context mContext;
     private WebView mWebView;
+    private TextView mTextView;
+    private Button mButtonFetchSay;
+    private Button mButtonClear;
     private TextToSpeech mTextToSpeech;
     private AlertDialog alertDialog; // an alert dialog called by JavaScript from WebView
     private MyWorkerThread workerThread;
@@ -218,6 +225,23 @@ public class MainActivity extends Activity {
 
         mContext = this;
 
+        mTextView = (TextView) findViewById(R.id.activity_main_textview);
+
+        mButtonFetchSay = (Button) findViewById(R.id.activity_main_button_fetch);
+        mButtonFetchSay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                fetchAndSayFirstNoteEntryInWebApp();
+            }
+        });
+        mButtonClear = (Button) findViewById(R.id.activity_main_button_clear);
+        mButtonClear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mTextView.setText("");
+            }
+        });
+
         mWebView = (WebView) findViewById(R.id.activity_main_webview);
         // inject a javascript-java interface object, available to JavaScript at next page (re)load
         //  javascript interacts with java object on a private background thread of the webview, so need to watch for thread safety
@@ -329,15 +353,6 @@ public class MainActivity extends Activity {
                     }
                 });
 
-                // do a test of tts by fetching first entry in web app's 'note'
-                //  but need to wait until jQuery has finished loading in webview
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        testTts();
-                    }
-                }, 200);
-
             } else {
                 // missing tts engine, go to store to get one to install
                 Intent installIntent = new Intent();
@@ -347,23 +362,40 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void testTts() {
-        // do test of tts
-        // by demoing how android can run javascript in webview: 1) fetch web app 'note' data, then 2) activate native app tts function
+    private void fetchAndSayFirstNoteEntryInWebApp() {
+        // demo how android can run javascript in webview: 1) fetch web app 'note' data, then 2) activate native app tts function
         StringBuilder sb = new StringBuilder();
         // ajaxURLPrefix is http://127.0.0.1:8080, path is /note
-        sb.append("var jqXHR = $.ajax({ url: ajaxURLPrefix+'/note', async: false });");
-        sb.append("var resp = jqXHR.responseText;");
-        // javascript object after parsing response is an array of size 1; property name is 'text'
-        sb.append("JSON.parse(resp)[0].text;");
+        sb.append("var jqXHR = $.ajax({ url: ajaxURLPrefix+'/note', async: false }); ");
+        sb.append("var resp = jqXHR.responseText; ");
+        // convert json text response to a JavaScript object literal as return value
+        sb.append("JSON.parse(resp); ");
         String jsStatements = sb.toString();
         String js = String.format("javascript:%s", jsStatements);
 
         // onReceiveValue is always {"readyState":1} in logcat if ajax call is async
         mWebView.evaluateJavascript(js, new ValueCallback<String>() {
             @Override public void onReceiveValue(String s) {
+                // not applicable for current implementation so for reference only:
+                //  single string json value is wrapped in quotes http://stackoverflow.com/questions/19788294/how-does-evaluatejavascript-work
                 //Log.i("*** Webview", s);
-                mTextToSpeech.speak(s, TextToSpeech.QUEUE_ADD, null);
+                String text;
+                try {
+                    // web app stores notes as array of objects in json notation
+                    JSONArray allNotes = new JSONArray(s);
+                    JSONObject firstNote = (JSONObject) allNotes.get(0);
+                    // property name for entry text is 'text'
+                    text = firstNote.getString("text");
+                } catch (JSONException e) {
+                    text = "";
+                }
+                mTextToSpeech.speak(text, TextToSpeech.QUEUE_ADD, null);
+
+                mTextView.setText(text);
+                mTextView.setEllipsize(TruncateAt.MARQUEE);
+                mTextView.setSingleLine(true);
+                mTextView.setMarqueeRepeatLimit(-1); // same as"marquee_forever" in xml
+                mTextView.setSelected(true); // seems needed for marquee scrolling
             }
         });
     }

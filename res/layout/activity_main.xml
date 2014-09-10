@@ -11,4 +11,28 @@
         android:layout_height="0dp"
         android:layout_weight="1"/>
 
+    <TextView
+        android:id="@+id/activity_main_textview"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:textSize="28dp" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+        <Button
+	        android:id="@+id/activity_main_button_fetch"
+	        style="?android:attr/buttonBarButtonStyle"
+	        android:layout_width="0dp"
+	        android:layout_weight="1"
+	        android:layout_height="wrap_content"
+	        android:text="FETCH/SAY Note" />
+        <Button
+            android:id="@+id/activity_main_button_clear"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="CLEAR TextView" />
+    </LinearLayout>
+
 </LinearLayout>
