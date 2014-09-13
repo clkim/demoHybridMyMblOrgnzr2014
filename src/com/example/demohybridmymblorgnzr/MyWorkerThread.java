@@ -1,4 +1,4 @@
-package com.example.hybriddemomymblorgnzr;
+package com.example.demohybridmymblorgnzr;
 
 import android.annotation.SuppressLint;
 import android.os.Handler;

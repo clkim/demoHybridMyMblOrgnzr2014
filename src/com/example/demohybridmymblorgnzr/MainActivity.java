@@ -1,4 +1,4 @@
-package com.example.hybriddemomymblorgnzr;
+package com.example.demohybridmymblorgnzr;
 
 import static android.content.DialogInterface.BUTTON_NEUTRAL;
 
