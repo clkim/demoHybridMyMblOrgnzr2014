@@ -57,8 +57,8 @@ $(document).on("mobileinit", function() {
 
   // Determine AJAX URL prefix.
   if (document.location.protocol.toLowerCase().indexOf("file") != -1) {
-    // use Chrome's Port forwarding to reach local dev machine over USB
-    // and not wifi network (which does not seem to recognize 127.0.0.1)
+    // Android device's Chrome for Android supports Port forwarding; use that to reach local dev
+    //  machine over USB, and not wifi network (which does not seem to recognize 127.0.0.1)
     // https://developer.chrome.com/devtools/docs/remote-debugging#enable-reverse-port-forwarding
     //  set Device port: 8080, Host: 127.0.0.1:80 (if server is listening on http://127.0.0.1:80)
     ajaxURLPrefix = "http://127.0.0.1:8080";

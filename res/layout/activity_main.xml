@@ -15,7 +15,7 @@
         android:id="@+id/activity_main_textview"
 	    android:layout_width="match_parent"
 	    android:layout_height="wrap_content"
-	    android:textSize="28dp" />
+	    android:textSize="28sp" />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
@@ -25,14 +25,14 @@
 	        android:layout_width="0dp"
 	        android:layout_weight="1"
 	        android:layout_height="wrap_content"
-	        android:text="FETCH/SAY Note" />
+	        android:text="@string/button_text_fetchsaynote" />
         <Button
             android:id="@+id/activity_main_button_clear"
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="CLEAR TextView" />
+            android:text="@string/button_text_cleartextview" />
     </LinearLayout>
 
 </LinearLayout>

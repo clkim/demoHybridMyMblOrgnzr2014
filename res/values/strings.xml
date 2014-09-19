@@ -4,5 +4,7 @@
     <string name="app_name">Hyb Mobile Organizer</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="action_settings">Settings</string>
+    <string name="button_text_fetchsaynote">FETCH/SAY Note</string>
+    <string name="button_text_cleartextview">CLEAR TextView</string>
 
 </resources>
