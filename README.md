@@ -40,17 +40,16 @@ npm install mongoose
  * At this point, we should see on Host browser's `chrome://inspect` page, the Android device, e.g. Nexus 4, listed in Devices
 
 ##### In Eclipse ADT
-* Create a new project by doing
-    File > Import > Existing Android Code into Workspace > Root directory: [PathToGitRepoBase]/demoHybridMyMblOrgnzr > Open > Finish. (Don't import as existing projects into workspace.)
-* In project (MainActivity default project name given by Eclipse) `Properties > Android` under Project Build Target, we have specified the latest non-preview Android platform, Android 4.4.W or API Level 20. Use `Window > Android SDK Manager` to verify that you have downloaded the required SDK platform. (Note that this Project Build Target does not appear to have to be the same as the `android:targetSdkVersion` specified in the `AndroidManifest.xml` file.)
+* Create a new project by doing `File > Import > Existing Android Code into Workspace > Root directory: [PathToGitRepoBase]/demoHybridMyMblOrgnzr > Open > Finish` (don't import as existing projects into workspace)
+* In project (default project name given by Eclipse is MainActivity) `Properties > Android > in Project Build Target` we have specified the latest non-preview Android platform, currently Android 4.4.W or API Level 20. Use `Window > Android SDK Manager` to verify that you have downloaded the required SDK platform. (Note that this Project Build Target does not appear to have to be the same as the `android:targetSdkVersion` specified in the `AndroidManifest.xml` file.)
 * There should be no build errors for the project at this point. If there is, try checking project's `Properties > Java Build Path`
 * At this point, we should be able to run the demo app on the Android device, but until the rest of the setup steps are done, be aware that the app will show an error Alert popup displaying some json object values such as `XHR:{"readyState":0...` as well as a `No Network Connection` error Dialog. But to verify that the demo app runs:
- * Right-click on this project name `(MainActivity) > Run As > Android Application` > Choose a running Android device: pick your Android device > OK
+ * Right-click on this project name `(MainActivity) > Run As > Android Application > Choose a running Android device: pick your Android device > OK`
  * Dismiss the error Alert and the error Dialog
  * See the demo app's main activity screen, comprising a WebView occupying most of the screen, two bar-buttons at the bottom of the screen, and an empty TextView immediately above them.
 
 ##### Run backend for the web app portion of the demo app
-The backend processes have to be run in the following order (see `./server/run.bat` for Windows)
+The backend processes *MUST be run in the following order* (see `./server/run.bat` for Windows)
 * Open Terminal (e.g. iTerm2 for a Mac) to run MongoDB daemon
 ```
 cd [PathToGitRepoBase]/demoHybridMyMblOrgnzr/server/
