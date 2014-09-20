@@ -49,19 +49,20 @@ npm install mongoose
  * See the demo app's main activity screen, comprising a WebView occupying most of the screen, two bar-buttons at the bottom of the screen, and an empty TextView immediately above them.
 
 ##### Run backend for the web app portion of the demo app
-* The backend processes have to be run in the following order (see ``` ./server/run.bat``` for Windows)
-  1. MongoDB daemon
+The backend processes have to be run in the following order (see ``` ./server/run.bat``` for Windows)
+* Open Terminal (e.g. iTerm2 for a Mac) to run MongoDB daemon
 ```
 cd [PathToGitRepoBase]/demoHybridMyMblOrgnzr/server/
 sudo mongod --dbpath ./db/
 Password:[enteradminpassword]
 ```
-  2. Open another Terminal to run Node.js server code in main.js:
+* Open another Terminal to run Node.js server code that is in main.js (e.g. iTerm2 for Mac, menu Shell > Split Horizontally With Current Profile)
 ```
 cd [PathToGitRepoBase]/demoHybridMyMblOrgnzr/server/
 sudo node ./main.js
+
+App available at http://127.0.0.1:80
 ```
-        See console output: App available at http://127.0.0.1:80
 
 ##### Set up Port forwarding between Android device and development Host
 * Chrome for Android supports [Port forwarding](https://developer.chrome.com/devtools/docs/remote-debugging#reverse-port-forwarding)
