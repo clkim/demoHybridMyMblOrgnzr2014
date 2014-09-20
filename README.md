@@ -50,6 +50,7 @@ npm install mongoose
 
 ##### Run backend for the web app portion of the demo app
 * The backend processes have to be run in the following order (see ``` ./server/run.bat``` for Windows)
+
  1. MongoDB daemon
 ```
 cd [PathToGitRepoBase]/demoHybridMyMblOrgnzr/server/
