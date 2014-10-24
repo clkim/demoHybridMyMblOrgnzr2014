@@ -78,14 +78,14 @@ App available at http://127.0.0.1:80
 ##### Test round-trip interaction between web app and native Android functionalities
 * First enter some data in web app (running in WebView); enter a Note entry
  * Select 'notepad' icon on menu bar at bottom of the WebView; touch menu icon on top right > New
- * Enter in 'Title' box: Ask not
- * Enter in 'Text' box: Ask not what this country can do for you.
+ * Enter in 'Title' box, example: Ask not
+ * Enter in 'Text' box, example: Ask not what this country can do for you.
  * Save
 * Next enter a couple of contacts using the pre-loaded "People" app in Android
  * "People" app > press 'add' icon at center bottom
  * First contact: 'Name' (Enter firstname lastname), 'Phone' (Enter number, then select HOME in dropdown) > Done
  * Second contact: 'Name' (Enter firstname lastname), 'Phone' (Enter number, then select MOBILE in dropdown), 'Email' (Enter email address, then select HOME in dropdown) > Done
-* Test roundtrip calling from: Android Java code, to JavaScript code in WebView, and back to Android functionality in Java code
- * Touch native Android bar-button "FETCH/SAY Note", get first note entry in web app, then say it with Android native TextToSpeech
-* Test roundtrip calling from: JavaScript code in web app, to native Android Java code, and back to JavaScript code in web app
- * Select 'contact' icon on menu bar at bottom of the WebView; touch menu icon on top right > Fetch Contacts, call Java code to get the Android Contacts stored by the "People" app, then return the Android Contacts to JavaScript code to be stored in the web app
+* Demo/Test roundtrip calling from: Android Java code, to JavaScript code in WebView, and back to Android functionality in Java code
+ * Touch native Android bar-button "FETCH/SAY Note", get first note entry in web app, then hear Android say it with native TextToSpeech
+* Demo/Test roundtrip calling from: JavaScript code in web app, to native Android Java code, and back to JavaScript code in web app
+ * Select 'contact' icon on menu bar at bottom of the WebView; touch menu icon on top right > Fetch Contacts, call Java code to get the Android Contacts stored by the "People" app, then return the Android Contacts to JavaScript code to be stored and viewable in the web app
