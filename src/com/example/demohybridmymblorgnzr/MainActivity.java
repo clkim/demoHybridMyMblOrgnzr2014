@@ -323,11 +323,12 @@ public class MainActivity extends Activity {
 
         // Text to Speech
 
-        // check there is a default tts engine installed
+        // check there is data for language installed, for TTS
         Intent checkTtsIntent = new Intent();
         checkTtsIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
         startActivityForResult(checkTtsIntent, MY_REQUEST_CODE);
-        // we do a test of tts and demonstrate accessing data from web app after checking there is tts engine
+        // if onActivityResult() runs ok, we're ready for click listener of mButtonFetchSay
+        // to demo TTS as well as demonstrate accessing data from web app
 
 
         // start WorkerThread
@@ -346,7 +347,7 @@ public class MainActivity extends Activity {
                     @Override
                     public void onInit(int i) {
                         if (i == TextToSpeech.SUCCESS) {
-                            mTextToSpeech.setLanguage(Locale.US);
+                            mTextToSpeech.setLanguage(Locale.getDefault());
                         } else {
                             Log.e(TextToSpeech.OnInitListener.class.getSimpleName(), "Snap! Text-to-speech onInit returned FAIL");
                         }
@@ -354,7 +355,7 @@ public class MainActivity extends Activity {
                 });
 
             } else {
-                // missing tts engine, go to store to get one to install
+                // missing data for language, so install it
                 Intent installIntent = new Intent();
                 installIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
                 startActivity(installIntent);
@@ -375,6 +376,8 @@ public class MainActivity extends Activity {
 
         // onReceiveValue is always {"readyState":1} in logcat if ajax call is async
         mWebView.evaluateJavascript(js, new ValueCallback<String>() {
+
+            @SuppressWarnings("deprecation") // TextToSpeech.speak(String, int, HashMap) deprecated in API 21
             @Override public void onReceiveValue(String s) {
                 // not applicable for current implementation so for reference only:
                 //  single string json value is wrapped in quotes http://stackoverflow.com/questions/19788294/how-does-evaluatejavascript-work
@@ -389,7 +392,7 @@ public class MainActivity extends Activity {
                 } catch (JSONException e) {
                     text = "";
                 }
-                mTextToSpeech.speak(text, TextToSpeech.QUEUE_ADD, null);
+                mTextToSpeech.speak(text, TextToSpeech.QUEUE_ADD, null); //API 21 replacement crashes in 4.4.4
 
                 mTextView.setText(text);
                 mTextView.setEllipsize(TruncateAt.MARQUEE);
