@@ -79,7 +79,7 @@ App available at http://127.0.0.1:80
 * First enter some data in web app (running in WebView); enter a Note entry
  * Select 'notepad' icon on menu bar at bottom of the WebView; touch menu icon on top right > New
  * Enter in 'Title' box, example: Ask not
- * Enter in 'Text' box, example: Ask not what this country can do for you.
+ * Enter in 'Text' box, example: Therefore, send not to know for whom the bell tolls, it tolls for thee.
  * Save
 * Next enter a couple of contacts using the pre-loaded "People" app in Android
  * "People" app > press 'add' icon at center bottom
