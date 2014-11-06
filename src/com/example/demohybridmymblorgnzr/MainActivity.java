@@ -67,7 +67,7 @@ public class MainActivity extends Activity {
     public class MyJsToJavaInterfaceObject {
 
         /** Fetch contacts from native address book */
-        @JavascriptInterface
+        @JavascriptInterface //mandatory if targetSdkVersion 17+ & running Android 4.2+
         public void fetchContacts(final String handleIdForDeferredObject) {
             Log.d("** debugging", "handleIdForDeferredObject is: " + handleIdForDeferredObject);
 
@@ -243,7 +243,7 @@ public class MainActivity extends Activity {
         });
 
         mWebView = (WebView) findViewById(R.id.activity_main_webview);
-        // inject a javascript-java interface object, available to JavaScript at next page (re)load
+        // inject a javascript-java-interface object, available to JavaScript at next page (re)load
         //  javascript interacts with java object on a private background thread of the webview, so need to watch for thread safety
         //  only java object's methods annotated with JavascriptInterface are accessible for targetSdkVersion to 17 (JELLY_BEAN_MR1) or higher
         mWebView.addJavascriptInterface(new MyJsToJavaInterfaceObject(), JS_INTERFACE_OBJECT_NAME);
@@ -253,10 +253,10 @@ public class MainActivity extends Activity {
         //  http://developer.android.com/reference/android/R.color.html
         mWebView.setBackgroundColor(
                 getResources().getColor(android.R.color.background_light)); // this is #ffffff
-        //  OR use color hex value, but good practice to define color value in own values xml file and use above syntax
+        //  OR use color hex value, but good practice to define color in application's values/colors.xml file and use above syntax
         //  https://github.com/android/platform_frameworks_base/blob/master/core/res/res/values/colors.xml
         //  http://developer.android.com/guide/topics/resources/more-resources.html#Color
-        //mWebView.setBackgroundColor(Color.parseColor("#f3f3f3")); // this is "background_holo_light"; no android.R.color.background_holo_light
+        //mWebView.setBackgroundColor(Color.parseColor("#f3f3f3")); // this is "background_holo_light"; there is no android.R.color.background_holo_light
 
         // Enable Javascript
         WebSettings webSettings = mWebView.getSettings();
@@ -280,7 +280,7 @@ public class MainActivity extends Activity {
         }
         webSettings.setBuiltInZoomControls(true); // only see pinch to zoom effect for dialog box; default false
 
-        // Open non-local webpages in browser instead of WebView
+        // Open local webpages in WebView instead of in mobile browser
         // default implementation in a myWebViewClient = new WebViewClient() always returns false
         mWebView.setWebViewClient(new WebViewClient() {
             @Override
@@ -367,9 +367,10 @@ public class MainActivity extends Activity {
         // demo how android can run javascript in webview: 1) fetch web app 'note' data, then 2) activate native app tts function
         StringBuilder sb = new StringBuilder();
         // ajaxURLPrefix is http://127.0.0.1:8080, path is /note
+        // ajax call should wait for response, then fire off ValueCallback with result obtained
         sb.append("var jqXHR = $.ajax({ url: ajaxURLPrefix+'/note', async: false }); ");
         sb.append("var resp = jqXHR.responseText; ");
-        // convert json text response to a JavaScript object literal as return value
+        // convert json text response to a JavaScript object as return value
         sb.append("JSON.parse(resp); ");
         String jsStatements = sb.toString();
         String js = String.format("javascript:%s", jsStatements);
@@ -384,15 +385,15 @@ public class MainActivity extends Activity {
                 //Log.i("*** Webview", s);
                 String text;
                 try {
-                    // web app stores notes as array of objects in json notation
+                    // web app stores notes as array of json notation object literals
                     JSONArray allNotes = new JSONArray(s);
                     JSONObject firstNote = (JSONObject) allNotes.get(0);
-                    // property name for entry text is 'text'
+                    // property name for responseText value is 'text'
                     text = firstNote.getString("text");
                 } catch (JSONException e) {
                     text = "";
                 }
-                mTextToSpeech.speak(text, TextToSpeech.QUEUE_ADD, null); //API 21 replacement crashes in 4.4.4
+                mTextToSpeech.speak(text, TextToSpeech.QUEUE_ADD, null); // deprecated in API 21 but replacement crashes when run on 4.4.4
 
                 mTextView.setText(text);
                 mTextView.setEllipsize(TruncateAt.MARQUEE);

@@ -4,7 +4,7 @@
  */
 var hybrid = hybrid || {};
 
-// IIEF parameter: 'ns' namespace arg; 'undefined' defaults to undefined
+// IIFE parameter: 'ns' namespace arg; 'undefined' defaults to undefined
 ;(function ( ns, undefined ) {
   // Event Pooling nested namespace
   ns.eventUtils = {
