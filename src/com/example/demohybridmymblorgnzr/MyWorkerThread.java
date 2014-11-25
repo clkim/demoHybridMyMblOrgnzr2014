@@ -6,6 +6,9 @@ import android.os.Looper;
 import android.os.Message;
 
 /**
+ * Not used anymore in main activity; instead, using HandlerThread since it already has a Looper.
+ * (Not deleting for now; leave as example of adding a Looper to a worker thread.)
+ *
  * Following http://androidshortnotes.blogspot.com/2013/02/thread-concept-in-android.html?view=sidebar
  *
  */

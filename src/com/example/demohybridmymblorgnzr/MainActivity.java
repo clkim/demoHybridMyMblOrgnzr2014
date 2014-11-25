@@ -22,6 +22,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.speech.tts.TextToSpeech;
 import android.text.TextUtils.TruncateAt;
 import android.util.Log;
@@ -62,17 +63,22 @@ public class MainActivity extends Activity {
     private Button mButtonClear;
     private TextToSpeech mTextToSpeech;
     private AlertDialog alertDialog; // an alert dialog called by JavaScript from WebView
-    private MyWorkerThread workerThread;
+    private HandlerThread workerHandlerThread;
+    private Handler handler;
 
     public class MyJsToJavaInterfaceObject {
 
-        /** Fetch contacts from native address book */
+        /** Fetch contacts from native address book for use in WebView
+         *
+         *  Runs in separate thread associated with WebView JavaScript/Java binding.
+         */
         @JavascriptInterface //mandatory if targetSdkVersion 17+ & running Android 4.2+
         public void fetchContacts(final String handleIdForDeferredObject) {
             Log.d("** debugging", "handleIdForDeferredObject is: " + handleIdForDeferredObject);
 
-            Handler handler = workerThread.getHandlerToMsgQueue();
-            // handler is set to null in onDestroy() to try to avoid thread leak
+            // Note that the worker HandlerThread here is different from the separate thread (not UI thread)
+            //  that this WebView JavaScript/Java method runs in
+            handler = new Handler(workerHandlerThread.getLooper()); // set to null in onDestroy()
             if (handler != null) {
                 handler.post(new Runnable() {
                     @Override
@@ -83,23 +89,70 @@ public class MainActivity extends Activity {
             }
         }
 
-        /** Show an alert dialog called from the WebView */
-        @JavascriptInterface
-        public void showAlertDialog(String toast) {
-            alertDialog = new AlertDialog.Builder(mContext).create();
-            alertDialog.setTitle("Alert");
-            alertDialog.setMessage(toast);
-            alertDialog.setButton(BUTTON_NEUTRAL, "OK", new OnClickListener() {
-                public void onClick(DialogInterface dialog, int which) {
-                    // need to dismiss and not just close dialog, to avoid
-                    //  crashing Android with error log entry:
-                    //  E/WindowManager(<pid>): android.view.WindowLeaked: Activity
-                    // also dismiss dialog before exiting Activity e.g. in onPause()
-                    dialog.dismiss();
+        /** Show an alert dialog called from the WebView - a 'hacky' example
+         *
+         *  Might be better to avoid, because there does not seem to be easy and robust
+         *  way to avoid "leaked window" error if alert dialog is open when orientation
+         *  change occurs (and Activity is destroyed). See comment notes below.
+         *
+         *  Runs in separate thread associated with WebView JavaScript/Java binding.
+         */
+        @JavascriptInterface //mandatory if targetSdkVersion 17+ & running Android 4.2+
+        public void showAlertDialog(final String toast) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    alertDialog = buildAlertDialog(toast);
+                    alertDialog.show();
                 }
             });
-            alertDialog.show();
+
+            // Limited successful attempt to dismiss the alert dialog after a time interval e.g. 2s.
+            // Could see "leaked window" LogCat error log message if orientation is changed
+            //  many times in quick succession, analogous to comments in onPause(), but
+            //  for somewhat different reason as explained below.
+            // We null out alertDialog in onDestroy() to try to avoid a leak.
+            Handler handler = new Handler(); // handler works with looper in this separate thread; don't need a worker thread for what we're doing here
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            // Multiple orientation changes in quick succession might cause FATAL EXCEPTION;
+                            //  we see IllegalArgumentException: PhoneWindow$DecorView not attached to a window manager.
+                            // The if-condition check seems to prevent crash, but could still result in:
+                            //  WindowLeaked: Activity... has leaked window ...PhoneWindow$DecorView
+                            //  if the alertDialog were not from most recent orientation change and so
+                            //  the if-condition prevents it from being dismissed;
+                            //  the if-condition is not documented and was obtained by trial-error from
+                            //  noticing the objects mentioned in the "leaked window" LogCat error message,
+                            //  so is quite hackish and might not work in future Android versions.
+                            if (alertDialog != null &&
+                                    alertDialog.getWindow().getDecorView().getWindowVisibility() != View.GONE) {
+                                alertDialog.dismiss();
+                            }
+                        }
+                    });
+                }
+            }, 2000);
         }
+    }
+
+    private AlertDialog buildAlertDialog(String toast) {
+        AlertDialog alertDialog = new AlertDialog.Builder(mContext).create();
+        alertDialog.setTitle("Alert");
+        alertDialog.setMessage(toast);
+        alertDialog.setButton(BUTTON_NEUTRAL, "OK", new OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                // Probably should explicitly dismiss or cancel dialog, for reason
+                //  that is documented in onPause() method below; touching OK button
+                //  even without any code here also seems to produce similar behavior.
+                // Also should dismiss dialog before exiting Activity e.g. in onPause()
+                dialog.dismiss();
+            }
+        });
+        return alertDialog;
     }
 
     private void getContactsAndResolveJSDeferredObj(String handleIdForDeferredObject) {
@@ -332,8 +385,8 @@ public class MainActivity extends Activity {
 
 
         // start WorkerThread
-        workerThread = new MyWorkerThread();
-        workerThread.start(); // some cleanup is done in onDestroy() to try to avoid leak
+        workerHandlerThread = new HandlerThread("Worker HandlerThread"); // set to null in onDestroy()
+        workerHandlerThread.start();
     }
 
     @Override
@@ -440,10 +493,15 @@ public class MainActivity extends Activity {
     @Override
     public void onPause() {
         super.onPause();
-        // need to dismiss before exiting Activity in order to avoid
-        //  crashing Android with error log entry:
-        //  E/WindowManager(<pid>): android.view.WindowLeaked: Activity
-        if (alertDialog != null) {
+        // Need to dismiss alertDialog before exiting Activity in order to avoid
+        //  seeing LogCat error log message (though app does not crash):
+        //  E/WindowManager(<pid>): android.view.WindowLeaked: Activity... has leaked window ...PhoneWindow$DecorView
+        // But, will still see the "leaked window" LogCat error log message on third time
+        //  if orientation is changed in quick succession because there are actually
+        //  two alertDialogs after two orientation changes, but first alertDialog seems
+        //  unreachable to be dismissed when orientation is changed a third time.
+        // We null out alertDialog in onDestroy() to try to avoid a leak.
+        if (alertDialog != null && alertDialog.isShowing()) {
             alertDialog.dismiss();
         }
     }
@@ -456,8 +514,9 @@ public class MainActivity extends Activity {
             // release resources
             mTextToSpeech.shutdown();
         }
-        if (workerThread != null) {
-            workerThread.cleanup();
-        }
+        // set to null to try to avoid leaks
+        handler = null;
+        workerHandlerThread = null; // Thread.stop() is unsafe and deprecated
+        alertDialog = null;
     }
 }
