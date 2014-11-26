@@ -26,7 +26,8 @@ git config --global core.autocrlf true
 * Clone this repository to get your own local git repo at `[PathToGitRepoBase]/`
 * Download Eclipse ADT from [Get the Android SDK](http://developer.android.com/sdk/index.html), if you don't have it
 * Go here to [Install Node.js](http://nodejs.org).
-* With Node.js installed, get MongoDB support by installing Mongoose module
+* Go here to [Install MongoDB](http://docs.mongodb.org/manual/installation/).
+* Get MongoDB object modeling for Node.js by installing Mongoose module
 ```
 npm install mongoose
 ```
