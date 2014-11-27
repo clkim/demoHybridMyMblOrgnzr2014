@@ -441,7 +441,7 @@ public class MainActivity extends Activity {
                     // web app stores notes as array of json notation object literals
                     JSONArray allNotes = new JSONArray(s);
                     JSONObject firstNote = (JSONObject) allNotes.get(0);
-                    // property name for responseText value is 'text'
+                    // property name for noteText value is 'text'
                     text = firstNote.getString("text");
                 } catch (JSONException e) {
                     text = "";
