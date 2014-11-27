@@ -36,17 +36,17 @@ npm install mongoose
 * Connect up your smartphone to your host development computer using USB (see [Using Hardware Devices](http://developer.android.com/tools/device.html))
 * Set up remote debugging:
  * First do [Enable USB debugging on your Android device](https://developer.chrome.com/devtools/docs/remote-debugging#enable-usb-debugging)
- * On development Host machine, start Chrome browser (v36+), then do [Enable USB discovery in Chrome](https://developer.chrome.com/devtools/docs/remote-debugging#enable-usb-discovery)
+ * On development Host machine, start Chrome browser (v39+), then do [Enable USB discovery in Chrome](https://developer.chrome.com/devtools/docs/remote-debugging#enable-usb-discovery)
  * Now, do [Connect your device via USB](https://developer.chrome.com/devtools/docs/remote-debugging#connect-device-via-usb)
  * At this point, we should see on Host browser's `chrome://inspect` page, the Android device, e.g. Nexus 4, listed in Devices
 
 ##### In Eclipse ADT
 * Create a new project by doing `File > Import > Existing Android Code into Workspace > Root directory: [PathToGitRepoBase]/demoHybridMyMblOrgnzr > Open > Finish` (don't import as existing projects into workspace)
-* In project (default project name given by Eclipse is MainActivity) `Properties > Android > in Project Build Target` we have specified the latest non-preview Android platform, currently Android 4.4.W or API Level 20. Use `Window > Android SDK Manager` to verify that you have downloaded the required SDK platform. (Note that this Project Build Target does not appear to have to be the same as the `android:targetSdkVersion` specified in the `AndroidManifest.xml` file.)
+* In project (default project name given by Eclipse is MainActivity) `Properties > Android > in Project Build Target` we have specified the latest non-preview Android platform, currently Android 5.0 or API Level 21. Use `Window > Android SDK Manager` to download the required SDK platform. (Note that this Project Build Target is a different setting than the `android:targetSdkVersion` specified in the `AndroidManifest.xml` file.)
 * There should be no build errors for the project at this point. If there is, try checking project's `Properties > Java Build Path`
 * At this point, we should be able to run the demo app on the Android device, but until the rest of the setup steps are done, be aware that the app will show an error Alert popup displaying some json object values such as `XHR:{"readyState":0...` as well as a `No Network Connection` error Dialog. But to verify that the demo app runs:
  * Right-click on this project name `(MainActivity) > Run As > Android Application > Choose a running Android device: pick your Android device > OK`
- * Dismiss the error Alert and the error Dialog
+ * Dismiss the error Alert (it should self dismiss) and the error Dialog
  * See the demo app's main activity screen, comprising a WebView occupying most of the screen, two bar-buttons at the bottom of the screen, and an empty TextView immediately above them.
 
 ##### Run backend for the web app portion of the demo app
@@ -67,7 +67,8 @@ App available at http://127.0.0.1:80
 
 ##### Set up Port forwarding between Android device and development Host
 * Chrome for Android supports [Port forwarding](https://developer.chrome.com/devtools/docs/remote-debugging#reverse-port-forwarding)
- * First, start Chrome for Android (v35+) on the Android device
+ * First, start Chrome for Android browser (v39+) on the Android device
+ * Caveat -- Chrome DevTools may crash the demo app with a "Fatal signal 11 (SIGSEGV) at 0x00000014 (code=1)..." logged in LogCat if Chrome for Android browser is not running on the Android device _before_ setting up "Port forwarding" in Development host's Chrome browser as described below
  * On development Host browser's `chrome://inspect` page, we should now see the Chrome for Android listed under the Android device; follow "Enable port forwarding" section in above "Port forwarding" link, and set `Device Port: 8080`, set `Host IP address and port: 127.0.0.1:80`
  * Make sure to check "Enable port forwarding" checkmark before hitting "Done" in the dialog popup for "Port forwarding"
  * At this point, we should see on Host browser's `chrome://inspect` page, a green circle indicating port forwarding success
