@@ -42,7 +42,7 @@ npm install mongoose
 
 ##### In Eclipse ADT
 * Create a new project by doing `File > Import > Existing Android Code into Workspace > Root directory: [PathToGitRepoBase]/demoHybridMyMblOrgnzr > Open > Finish` (don't import as existing projects into workspace)
-* In project (default project name given by Eclipse is MainActivity) `Properties > Android > in Project Build Target` we have specified the latest non-preview Android platform, currently Android 5.0 or API Level 21. Use `Window > Android SDK Manager` to download the required SDK platform. (Note that this Project Build Target is a different setting than the `android:targetSdkVersion` specified in the `AndroidManifest.xml` file.)
+* In project (default project name given by Eclipse is MainActivity; can change with Refactor > Rename...) `Properties > Android > in Project Build Target` we have specified the current Android platform Android 5.0 or API Level 21. Use `Window > Android SDK Manager` to download the required SDK platform. (Note that this Project Build Target can be same or later than the `android:targetSdkVersion` specified in the `AndroidManifest.xml` file.)
 * There should be no build errors for the project at this point. If there is, try checking project's `Properties > Java Build Path`
 * At this point, we should be able to run the demo app on the Android device, but until the rest of the setup steps are done, be aware that the app will show an error Alert popup displaying some json object values such as `XHR:{"readyState":0...` as well as a `No Network Connection` error Dialog. But to verify that the demo app runs:
  * Right-click on this project name `(MainActivity) > Run As > Android Application > Choose a running Android device: pick your Android device > OK`
